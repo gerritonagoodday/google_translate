@@ -223,9 +223,9 @@ if ( $tags_marked ne $query_string ) {
   # Escape embedded single speech marks
   $to_be_translated_string =~ s/'/\\'/g;
 }else{
-  # Escape embedded single speech marks
-  $to_be_translated_string =~ s/'/\\'/g;
+  # Escape embedded single speech marks  
   $to_be_translated_string = $query_string;
+  $to_be_translated_string =~ s/'/\\'/g;
 }
 DEBUG "Translating >>$to_be_translated_string<<";
 
