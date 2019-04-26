@@ -6,7 +6,7 @@
 
 =head1 NAME
 
-google_translate.pl: Translates any arbitary text from one language to another. 
+google_translate.pl: Translates any arbitrary text from one language to another. 
 
 It also preserves formatting tags (e.g. %1$s, %03c, %d, %e), substitution tags (e.g. {} and []}), 
 programming functions (class::method) and HTML tags in the input text in the same order as 
@@ -16,6 +16,12 @@ requires a sentence-part rearrangement. You should manually check that the tags 
 This uses Google Translate API Version 2.0. Look out for a future version that uses Google Translate API V3.
 The translation quality is already very good compared to Version 1.0, but you should always manually 
 check the resulting translation to avoid embarassment or offence. 
+
+The output if sent to STDOUT. Here is what you can do with it in, say, the BASH shell:
+
+  ~ $ a=$(./google_translate.pl -q "Hello %s, my name is Jeff, the god of biscuits." -s en -t de 2>/dev/null)
+  ~ $ printf "$a\n" Peter
+  Hallo Peter, mein Name ist Jeff, der Gott der Kekse.
 
 =head1 SYNOPSIS
 
@@ -185,39 +191,42 @@ my $to_be_translated_string="";
 
 # Mark bits in string with [[..]] that should not be translated 
 # e.g. " aaaa %s bbbb"  => "aaaa [[%s]] bbbb"
-my $marked_non_translation_islands=$query_string;
-$marked_non_translation_islands =~ s/<[^>]*>/[[$&]]/g;      # HTML Tags
-$marked_non_translation_islands =~ s/\{[^{]*\}/[[$&]]/g;    # Placeholders {}
-$marked_non_translation_islands =~ s/\[[^{]*\]/[[$&]]/g;    # Placeholders []
-$marked_non_translation_islands =~ s/%[^ ]*[sdec]/[[$&]]/g; # Placeholders %1$s %03c %d %e
-$marked_non_translation_islands =~ s/^.*: ?:[^: ]*/[[$&]]/g; # Function Name: JFTP: :write
+my $tags_marked=$query_string;
+$tags_marked =~ s/<[^>]*>/[[$&]]/g;      # HTML Tags
+$tags_marked =~ s/\{[^{]*\}/[[$&]]/g;    # Placeholders {}
+$tags_marked =~ s/\[[^{]*\]/[[$&]]/g;    # Placeholders []
+$tags_marked =~ s/%[^ ]*[sdec]/[[$&]]/g; # Placeholders %1$s %03c %d %e
+$tags_marked =~ s/^.*: ?:[^: ]*/[[$&]]/g; # Function Name: JFTP: :write
 
-my $has_untranslatables=false;
-my @non_translation_strings=();
-if ( $marked_non_translation_islands ne $query_string ) {
+my $has_tags=false;
+my @tags=(); # Collection of non-translatable tags in query string
+
+if ( $tags_marked ne $query_string ) {
   # There are pieces of non-translatable text here
-  $has_untranslatables=true;
+  $has_tags=true;
   # Get non-translatable string-pieces
   # e.g. from "aaaa [[%s]] bbbb", add "%s" to array
-  my $s=$marked_non_translation_islands;
+  my $s=$tags_marked;
   $s=~s/\]\][^\]]*$//;  # Remove last translatable texxt
-  @non_translation_strings=split(/\]\]/, $s);
-  s/.*\[\[// for @non_translation_strings;
-  DEBUG "Number of non-translated islands of text: ", scalar @non_translation_strings;
-  DEBUG  join(", ",@non_translation_strings);
+  @tags=split(/\]\]/, $s);
+  s/.*\[\[// for @tags;
+  DEBUG "Number of tags: ", scalar @tags;
+  DEBUG  join(", ",@tags);
 
+  $to_be_translated_string = $tags_marked;
   # Replace non-translatable string pieces with a 
   # marker that will be ignored by the API
-  my $ignore_me="||";
-
-  $to_be_translated_string = $marked_non_translation_islands;
-  $to_be_translated_string =~ s/\[\[[^\]]*\]\]/$ignore_me/g;
-  
+  # Google translate corrupts any text inside the spans,
+  # it is not predictable, but it is consistent at least.
+  my $ignore_me="<span class='notranslate'>||</span>";
+  $to_be_translated_string =~ s/\[\[[^\]]*\]\]/$ignore_me/g;  
+  # Escape embedded single speech marks
+  $to_be_translated_string =~ s/'/\\'/g;
 }else{
+  # Escape embedded single speech marks
+  $to_be_translated_string =~ s/'/\\'/g;
   $to_be_translated_string = $query_string;
 }
-# Escape embedded single speech marks
-$to_be_translated_string =~ s/'/\\'/g;
 DEBUG "Translating >>$to_be_translated_string<<";
 
 my $client = REST::Client->new({
@@ -248,14 +257,18 @@ if ( $client->responseCode() != 200 ) {
 my $json_hash=decode_json($client->responseContent());
 my $translated_text=$json_hash->{data}->{translations}->[0]->{translatedText}."\n";
 
-# PROBLEM: The marked bits disappeared during the translation!
 
-if ( $has_untranslatables == true ) {
+if ( $has_tags == true ) {
+  DEBUG "\$translated_text with marked tags: >>$translated_text<<";
+  # my $ignore_me_uri="\u003cspan class = 'notranslate'\u003e || \u003c/ span\u003e";
+  #my $ignore_me_corrupted=qr"<span class = 'notranslate'> || </ span>";
   # Replace marked non-translation srting-islands with original texts:
-  foreach (@non_translation_strings){
-    $translated_text =~ "s/\[\[[^\]]*\]\]/$_/";
+  foreach my $tag (@tags){                          
+    $translated_text =~ s/<span class = 'notranslate'> \|\| <\/ span>/$tag/;
   }
+  DEBUG "\$translated_text with original tags replaced: >>$translated_text<<";
+}else{
+  DEBUG "\$translated_text: >>$translated_text<<";
 }
-
 binmode STDOUT, ":utf8";
 print $translated_text;

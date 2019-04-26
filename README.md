@@ -1,6 +1,6 @@
 # NAME
 
-google\_translate.pl: Translates any arbitary text from one language to another. 
+google\_translate.pl: Translates any arbitrary text from one language to another. 
 
 It also preserves formatting tags (e.g. %1$s, %03c, %d, %e), substitution tags (e.g. {} and \[\]}), 
 programming functions (class::method) and HTML tags in the input text in the same order as 
@@ -10,6 +10,12 @@ requires a sentence-part rearrangement. You should manually check that the tags 
 This uses Google Translate API Version 2.0. Look out for a future version that uses Google Translate API V3.
 The translation quality is already very good compared to Version 1.0, but you should always manually 
 check the resulting translation to avoid embarassment or offence. 
+
+The output if sent to STDOUT. Here is what you can do with it in, say, the BASH shell:
+
+    ~ $ a=$(./google_translate.pl -q "Hello %s, my name is Jeff, the god of biscuits." -s en -t de 2>/dev/null)
+    ~ $ printf "$a\n" Peter
+    Hallo Peter, mein Name ist Jeff, der Gott der Kekse.
 
 # SYNOPSIS
 
