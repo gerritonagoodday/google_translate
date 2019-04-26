@@ -257,14 +257,12 @@ if ( $client->responseCode() != 200 ) {
 my $json_hash=decode_json($client->responseContent());
 my $translated_text=$json_hash->{data}->{translations}->[0]->{translatedText}."\n";
 
-
 if ( $has_tags == true ) {
   DEBUG "\$translated_text with marked tags: >>$translated_text<<";
-  # my $ignore_me_uri="\u003cspan class = 'notranslate'\u003e || \u003c/ span\u003e";
-  #my $ignore_me_corrupted=qr"<span class = 'notranslate'> || </ span>";
-  # Replace marked non-translation srting-islands with original texts:
-  foreach my $tag (@tags){                          
-    $translated_text =~ s/<span class = 'notranslate'> \|\| <\/ span>/$tag/;
+  # Replace marked non-translation string-islands with original texts:
+  # Sometimes the marks get corrupted by Google.
+  foreach my $tag (@tags){
+    $translated_text =~ s/<span class = 'notranslate'>? \|\| <\/ span>/$tag/;    
   }
   DEBUG "\$translated_text with original tags replaced: >>$translated_text<<";
 }else{

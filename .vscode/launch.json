@@ -15,7 +15,7 @@
       "execArgs": [],
       "root": "${workspaceRoot}/",
       "inc": [],
-      "args": ["-q=Hello %s, my name is Jeff, the god of biscuits. It is the god's will.","-s=en","-t=de","-d"],
+      "args": ["-q=Method %s does not exist.","-s=en","-t=am","-d"],
       "env": {},
       "debugRaw": false,
       "debugLog": false,
