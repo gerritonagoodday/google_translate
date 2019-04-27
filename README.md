@@ -19,9 +19,9 @@ The output if sent to STDOUT. Here is what you can do with it in, say, the BASH 
 
 # SYNOPSIS
 
-If you are an Eddie Izzard fan try this. Information and debug messages go to _stderr_, hence the `<2`/dev/null>> redirection:
+If you are an Eddie Izzard fan try this. Information and debug messages go to _stderr_, hence the 2>/dev/null redirection:
 
-    ./google_translate.pl -s en -t de -q 'Hello world, my name is Jeff, the god of biscuits.' 2>/dev/null
+    google_translate.pl -s en -t de -q 'Hello world, my name is Jeff, the god of biscuits.' 2>/dev/null
 
 This returns:
 
@@ -29,7 +29,7 @@ This returns:
 
 # OPTIONS
 
-`./google_translate.pl **-s|--source** _langauge_ **-t|--target** _langauge_ **-q|--query** _'text to be translated'_ [-d|--debug] [-m|--man]`
+    google_translate.pl -s|--source I<langauge} -t|--target I<langauge> -q|--query I<'text to be translated'> [-d|--debug] [-m|--man]
 
 ## Mandatory
 
