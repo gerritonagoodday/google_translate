@@ -11,7 +11,7 @@ This uses Google Translate API Version 2.0. Look out for a future version that u
 The translation quality is already very good compared to Version 1.0, but you should always manually 
 check the resulting translation to avoid embarassment or offence. 
 
-The output if sent to STDOUT. Here is what you can do with it in, say, the BASH shell:
+The output if sent to _stdout_. Here is what you can do with it in, say, the BASH shell:
 
     ~ $ a=$(./google_translate.pl -q "Hello %s, my name is Jeff, the god of biscuits." -s en -t de 2>/dev/null)
     ~ $ printf "$a\n" Peter
@@ -29,7 +29,8 @@ This returns:
 
 # OPTIONS
 
-    google_translate.pl -s|--source I<langauge} -t|--target I<langauge> -q|--query I<'text to be translated'> [-d|--debug] [-m|--man]
+    google_translate.pl -s|--source langauge -t|--target langauge -q|--query 'text to be translated' 
+                       [-d|--debug] [-m|--man]
 
 ## Mandatory
 
@@ -142,15 +143,3 @@ These are the languages supported by Google Translate as of April 2019, with the
 To update the README file, do this:
 
     pod2markdown google_translate.pl > README.md
-
-# POD ERRORS
-
-Hey! **The above document had some coding errors, which are explained below:**
-
-- Around line 70:
-
-    You forgot a '=back' before '=head2'
-
-- Around line 72:
-
-    '=item' outside of any '=over'
