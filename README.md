@@ -3,8 +3,8 @@
 google\_translate.pl: Translates any arbitrary text from one language to another. 
 
 It also preserves formatting tags (e.g. %1$s, %03c, %d, %e), substitution tags (e.g. {} and \[\]}), 
-programming functions (class::method) and HTML tags in the input text in the same order as 
-as they were encountered. The results are unpredictable when the translated-to language necessarily
+programming functions names (class::method) and HTML tags in the input text in the same order as 
+they were encountered. The results are unpredictable when the translated-to language necessarily
 requires a sentence-part rearrangement. You should manually check that the tags are in the correct context.
 
 This uses Google Translate API Version 2.0. Look out for a future version that uses Google Translate API V3.
@@ -19,7 +19,7 @@ The output if sent to STDOUT. Here is what you can do with it in, say, the BASH 
 
 # SYNOPSIS
 
-If you are an Eddie Izzard fan try this. Information and debug messages go to STDERR, hence the 2>/dev/null redirection:
+If you are an Eddie Izzard fan try this. Information and debug messages go to _stderr_, hence the `<2`/dev/null>> redirection:
 
     ./google_translate.pl -s en -t de -q 'Hello world, my name is Jeff, the god of biscuits.' 2>/dev/null
 
@@ -54,6 +54,15 @@ This returns:
 - **-m|--man**
 
     Help - displays the man page for this script
+
+## Optional Advanced
+
+- **-l|--linebreak**
+
+    Break output lines according to the input linebreaks. 
+    By default, multi-line output will be merged into a single line 
+    with actual two characters '\\n' that more-or-less correspond to linebreaks 
+    in the source text.
 
 # Setting yourself up to use Google Cloud Platform API services
 
@@ -133,3 +142,15 @@ These are the languages supported by Google Translate as of April 2019, with the
 To update the README file, do this:
 
     pod2markdown google_translate.pl > README.md
+
+# POD ERRORS
+
+Hey! **The above document had some coding errors, which are explained below:**
+
+- Around line 70:
+
+    You forgot a '=back' before '=head2'
+
+- Around line 72:
+
+    '=item' outside of any '=over'
