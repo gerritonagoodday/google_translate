@@ -86,8 +86,7 @@ Set this environment variable:
 
     $ export GOOGLE_APPLICATION_CREDENTIALS="${HOME}/.gcp/[projectname]-[id].json"
 
-Add this line above to your ~/.bashrc file. Use `${HOME}`, not `~`. 
-Windows users, you are all just pathetic. Bedtime! This is not for you, only for grown-ups.
+Add this line above to your `~/.bashrc` file. Use `${HOME}`, not `~`. 
 Test it with this command: 
 
     $ gcloud auth application-default print-access-token
