@@ -67,6 +67,15 @@ Debug mode - displays lots of messages in the error log
 
 Help - displays the man page for this script
 
+=head2 Optional Advanced
+
+=item B<-l|--linebreak>
+
+Break output lines according to the input linebreaks. 
+By default, multi-line output will be merged into a single line 
+with actual two characters '\n' that more-or-less correspond to linebreaks 
+in the source text.
+
 =back
 
 =head1 Setting yourself up to use Google Cloud Platform API services
@@ -167,16 +176,16 @@ Log::Log4perl->easy_init({  level     => $DEBUG,
                             utf8      => 1 });
 
 # Options
-my ($debug,$man,$source_language,$target_language,$query_string);
+my ($debug,$man,$source_language,$target_language,$query_string,$linebreak);
 # Parse commandline parameters
 GetOptions( 'debug|d'               =>\$debug,
             'man|m'                 =>\$man,
+            'linebreak|l'           =>\$linebreak,
             'source|s=s'            =>\$source_language,
             'target|t=s'            =>\$target_language,
             'query|q=s'             =>\$query_string,            
           )
  || pod2usage(-exitstatus=>1, -verbose=>1); # show SYNOPSYS and options
-
 
 if(defined($man)){
   pod2usage(-exitstatus=>1, -verbose=>2); # show complete man page
@@ -187,16 +196,27 @@ if(!defined($source_language)||!defined($target_language)||!defined($query_strin
   pod2usage(-exitstatus=>1, -verbose=>0);
 }
 
+# Defaults:
+if(!defined($linebreak)){
+  $linebreak=false;
+}
+
+# Clean up $query_string
+chomp($query_string);
+# Escape embedded single speech marks
+$query_string =~ s/'/\\'/g;
+
 my $to_be_translated_string="";
 
 # Mark bits in string with [[..]] that should not be translated 
 # e.g. " aaaa %s bbbb"  => "aaaa [[%s]] bbbb"
 my $tags_marked=$query_string;
-$tags_marked =~ s/<[^>]*>/[[$&]]/g;      # HTML Tags
-$tags_marked =~ s/\{[^{]*\}/[[$&]]/g;    # Placeholders {}
-$tags_marked =~ s/\[[^{]*\]/[[$&]]/g;    # Placeholders []
-$tags_marked =~ s/%[^ ]*[sdec]/[[$&]]/g; # Placeholders %1$s %03c %d %e
+$tags_marked =~ s/<[^>]*>/[[$&]]/g;       # HTML Tags
+$tags_marked =~ s/\{[^{]*\}/[[$&]]/g;     # Placeholders {}
+$tags_marked =~ s/\[[^{]*\]/[[$&]]/g;     # Placeholders []
+$tags_marked =~ s/%[^ ]*[sdec]/[[$&]]/g;  # Placeholders %1$s %03c %d %e
 $tags_marked =~ s/^.*: ?:[^: ]*/[[$&]]/g; # Function Name: JFTP: :write
+$tags_marked =~ s/\"/[[\\"]]/g;           # Embedded inverted commas
 
 my $has_tags=false;
 my @tags=(); # Collection of non-translatable tags in query string
@@ -215,18 +235,15 @@ if ( $tags_marked ne $query_string ) {
 
   $to_be_translated_string = $tags_marked;
   # Replace non-translatable string pieces with a 
-  # marker that will be ignored by the API
+  # marker that will be ignored by the API. Note loose spacing.
   # Google translate corrupts any text inside the spans,
   # it is not predictable, but it is consistent at least.
-  my $ignore_me="<span class='notranslate'>||</span>";
+  my $ignore_me="<span class = \\'notranslate\\'> || </ span>";
   $to_be_translated_string =~ s/\[\[[^\]]*\]\]/$ignore_me/g;  
-  # Escape embedded single speech marks
-  $to_be_translated_string =~ s/'/\\'/g;
 }else{
-  # Escape embedded single speech marks  
   $to_be_translated_string = $query_string;
-  $to_be_translated_string =~ s/'/\\'/g;
 }
+
 DEBUG "Translating >>$to_be_translated_string<<";
 
 my $client = REST::Client->new({
@@ -255,14 +272,29 @@ if ( $client->responseCode() != 200 ) {
   LOGDIE "[$error_code] Translate did not work:  $error_msg" 
 }
 my $json_hash=decode_json($client->responseContent());
-my $translated_text=$json_hash->{data}->{translations}->[0]->{translatedText}."\n";
+my $translated_text=$json_hash->{data}->{translations}->[0]->{translatedText};
+
+if($linebreak==false){
+  # Replace newlines with \n
+  $translated_text =~ s/\n/\\n/g;
+}
 
 if ( $has_tags == true ) {
   DEBUG "\$translated_text with marked tags: >>$translated_text<<";
   # Replace marked non-translation string-islands with original texts:
-  # Sometimes the marks get corrupted by Google.
+  # We are looking for this:
+  # <span class = 'notranslate'> || </ span>
+  # Sometimes the marks get corrupted by Google. 
+  # Corruptions encountered and covered in the regex thus far are:    
+  # <span class = 'notranslate'> | </ span>  
+  # <span class = 'notranslate' || </ span>
+  # <Span class = 'notranslate'> || </ span>
+  # <span class = 'notranslate </ span>
+  
+  # These corruptions need further investigation
+  # <span class = 'notranslate' | | <<span> </ span>
   foreach my $tag (@tags){
-    $translated_text =~ s/<span class = 'notranslate'>? \|\| <\/ span>/$tag/;    
+    $translated_text =~ s/<span class = 'notranslate'?>? \|\|? <\/ span>/$tag/i;     
   }
   DEBUG "\$translated_text with original tags replaced: >>$translated_text<<";
 }else{

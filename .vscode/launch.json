@@ -15,7 +15,7 @@
       "execArgs": [],
       "root": "${workspaceRoot}/",
       "inc": [],
-      "args": ["-q=Contact's articles.","-s=en","-t=am","-d"],
+      "args": ["-q=Hello, how are \"you\", Mr %s?","-s=en","-t=de","-d"],
       "env": {},
       "debugRaw": false,
       "debugLog": false,
