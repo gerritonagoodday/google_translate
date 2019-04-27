@@ -3,7 +3,7 @@
 google\_translate.pl: Translates any arbitrary text from one language to another. 
 
 It also preserves formatting tags (e.g. %1$s, %03c, %d, %e), substitution tags (e.g. {} and \[\]}), 
-programming functions names (class::method) and HTML tags in the input text in the same order as 
+programming function-names (class::method) and HTML tags in the input text in the same order as 
 they were encountered. The results are unpredictable when the translated-to language necessarily
 requires a sentence-part rearrangement. You should manually check that the tags are in the correct context.
 
@@ -13,7 +13,7 @@ check the resulting translation to avoid embarassment or offence.
 
 The output if sent to _stdout_. Here is what you can do with it in, say, the BASH shell:
 
-    ~ $ a=$(./google_translate.pl -q "Hello %s, my name is Jeff, the god of biscuits." -s en -t de 2>/dev/null)
+    ~ $ a=$(google_translate.pl -q "Hello %s, my name is Jeff, the god of biscuits." -s en -t de 2>/dev/null)
     ~ $ printf "$a\n" Peter
     Hallo Peter, mein Name ist Jeff, der Gott der Kekse.
 
@@ -81,12 +81,12 @@ and follow the steps for version 2.0: Set up a Google Cloud Platform project
 if you don't already have one that you can piggy-back off in the GCP console.
 Download your private key as a JSON file and keep in a place where it is safe
 (a naughty person could run charges up if this falls in the wrong hands)
-and will not be deleted, e.g. `<${HOME}/.gcp/v2/[projectname]-[id].json`>.
+and will not be deleted, e.g. `${HOME}/.gcp/v2/[projectname]-[id].json`.
 Set this environment variable:
 
     $ export GOOGLE_APPLICATION_CREDENTIALS="${HOME}/.gcp/[projectname]-[id].json"
 
-Add this line above to your ~/.bashrc file. Use `<${HOME}`>, not `<~`>. 
+Add this line above to your ~/.bashrc file. Use `${HOME}`, not `~`. 
 Windows users, you are all just pathetic. Bedtime! This is not for you, only for grown-ups.
 Test it with this command: 
 
@@ -94,7 +94,7 @@ Test it with this command:
 
 It should return a long key string.
 
-Now try this (C&P code into terminal is recommended here!):
+Now try this (C&P this code into your terminal is recommended here!):
 
     $ curl -s -X POST -H "Content-Type: application/json" \
         -H "Authorization: Bearer "$(gcloud auth application-default print-access-token) \
